@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // NodeRPC provides RPC methods for workers.
@@ -47,7 +48,19 @@ func (m *NodeRPC) WriteNodeData(args *types.WriteNodeDataArgs,
 	site := m.Settings.Sites[m.Worker.Ticket.Site]
 	path := filepath.Join(site.Directories.Data, args.Path[1:], args.File)
 	err := ioutil.WriteFile(path, []byte(args.Content), 0600)
-	return err
+	if err != nil {
+		return err
+	}
+	node, err := lookupNode(site.Directories.Data, args.Path)
+	if err != nil {
+		return err
+	}
+	log.Println("looked up Node:", node)
+	node.LastUpdateBy = m.Worker.Ticket.Session.User.Login
+	now := time.Now()
+	time := client.Time{&now}
+	node.LastUpdate = &time
+	return writeNode(node, site.Directories.Data)
 }
 
 func (m *NodeRPC) GetFileData(key *string, reply *[]byte) error {

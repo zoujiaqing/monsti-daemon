@@ -9,6 +9,7 @@ import (
 	"github.com/monsti/util/template"
 	"io/ioutil"
 	"launchpad.net/goyaml"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -271,9 +272,12 @@ func lookupNode(root, path string) (client.Node, error) {
 		return client.Node{}, err
 	}
 	var node client.Node
+	log.Printf("Unmarshall %s", content)
 	if err = goyaml.Unmarshal(content, &node); err != nil {
+		log.Printf("got error", err)
 		return client.Node{}, err
 	}
+	log.Printf("got", node)
 	node.Path = path
 	return node, nil
 }
